@@ -30,6 +30,7 @@ export default function SteamGameDetailsView({
     ? details.backgroundImages
     : [game.image, game.fallbackImage].filter((image): image is string => Boolean(image));
 
+  // ถ้ารูปพื้นหลังโหลดไม่ได้ ให้ลองรูปถัดไป ถ้าหมดแล้วจะซ่อนรูป
   function handleHeroImageError(event: SyntheticEvent<HTMLImageElement>) {
     const nextIndex = heroImageIndex + 1;
     if (nextIndex < heroImages.length) {
@@ -39,6 +40,7 @@ export default function SteamGameDetailsView({
     }
   }
 
+  // เช็กว่าเกมนี้อยู่ในตะกร้าหรือในคลังแล้วหรือยัง
   useEffect(() => {
     if (!isLoggedIn) return;
     try {
@@ -49,11 +51,13 @@ export default function SteamGameDetailsView({
     }
   }, [game.id, isLoggedIn, ownerKey]);
 
+  // เปลี่ยนไปดูเกมอื่นแล้วรีเซ็ตสถานะรูปภาพ
   useEffect(() => {
     setHeroImageIndex(0);
     setScreenshotFallbacks({});
   }, [game.id]);
 
+  // เพิ่มเกมลงตะกร้า (ถ้าซื้อไปแล้วจะไม่ถูกเพิ่ม และแสดงว่าอยู่ในคลังแทน)
   function addToCart() {
     if (!isLoggedIn) return;
     try {

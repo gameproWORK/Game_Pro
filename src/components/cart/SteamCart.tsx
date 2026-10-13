@@ -16,6 +16,7 @@ export default function SteamCart({ ownerKey }: { ownerKey: string }) {
   const [purchasedGameName, setPurchasedGameName] = useState("");
   const [error, setError] = useState("");
 
+  // โหลดตะกร้าจาก localStorage เมื่อเปิดหน้า
   useEffect(() => {
     try {
       setGames(readSteamCart(ownerKey));
@@ -24,6 +25,7 @@ export default function SteamCart({ ownerKey }: { ownerKey: string }) {
     }
   }, [ownerKey]);
 
+  // กด Esc เพื่อปิดหน้าต่างยืนยันการซื้อ
   useEffect(() => {
     if (!gameToConfirm) return;
 
@@ -35,6 +37,7 @@ export default function SteamCart({ ownerKey }: { ownerKey: string }) {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [gameToConfirm]);
 
+  // รวมราคาเฉพาะเกมที่รู้ราคา (เกมที่ไม่มีราคาจะนับจำนวนแยกไว้)
   const knownSubtotal = useMemo(
     () => games.reduce((sum, game) => sum + (game.priceAmount ?? 0), 0),
     [games]
@@ -46,6 +49,7 @@ export default function SteamCart({ ownerKey }: { ownerKey: string }) {
     maximumFractionDigits: 2,
   }).format(knownSubtotal);
 
+  // นำเกมออกจากตะกร้า
   function removeGame(gameId: number) {
     try {
       setGames(removeSteamGameFromCart(ownerKey, gameId));
@@ -55,6 +59,7 @@ export default function SteamCart({ ownerKey }: { ownerKey: string }) {
     }
   }
 
+  // ยืนยันการซื้อ: ย้ายเกมเข้าคลังแล้วโหลดตะกร้าใหม่
   function confirmPurchase() {
     if (!gameToConfirm) return;
     try {

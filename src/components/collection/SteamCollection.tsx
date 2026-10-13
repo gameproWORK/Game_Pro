@@ -32,6 +32,7 @@ export default function SteamCollection({ ownerKey, isAdmin }: { ownerKey: strin
   const totalHoursPlayed = games.reduce((total, game) => total + game.hoursPlayed, 0);
   const formattedTotalHours = new Intl.NumberFormat("th-TH").format(totalHoursPlayed);
 
+  // โหลดคลังเกมจาก localStorage เมื่อเปิดหน้า
   useEffect(() => {
     try {
       setGames(readSteamCollection(ownerKey));
@@ -40,6 +41,7 @@ export default function SteamCollection({ ownerKey, isAdmin }: { ownerKey: strin
     }
   }, [ownerKey]);
 
+  // กด Esc เพื่อปิดหน้าต่างยืนยันการลบเกม
   useEffect(() => {
     if (!gameToRemove) return;
 
@@ -51,6 +53,7 @@ export default function SteamCollection({ ownerKey, isAdmin }: { ownerKey: strin
     return () => window.removeEventListener("keydown", handleEscape);
   }, [gameToRemove]);
 
+  // บันทึกชั่วโมงเล่นที่ผู้ใช้กรอก แล้วล้างค่าที่พิมพ์ค้างไว้ของเกมนั้น
   function savePlaytime(gameId: number, currentHours: number) {
     const draft = playtimeDrafts[gameId];
     const hours = draft === undefined ? currentHours : Number(draft);
@@ -73,6 +76,7 @@ export default function SteamCollection({ ownerKey, isAdmin }: { ownerKey: strin
     }
   }
 
+  // นำเกมออกจากคลัง
   function removeGame(gameId: number) {
     try {
       setGames(removeSteamGameFromCollection(ownerKey, gameId));
@@ -83,6 +87,7 @@ export default function SteamCollection({ ownerKey, isAdmin }: { ownerKey: strin
     }
   }
 
+  // (แอดมิน) เปิดฟอร์มเพิ่มเกมใหม่แบบว่างเปล่า
   function startAddingGame() {
     setGameToEdit(null);
     setAdminGameDraft(EMPTY_ADMIN_GAME);
@@ -91,6 +96,7 @@ export default function SteamCollection({ ownerKey, isAdmin }: { ownerKey: strin
     setNotice("");
   }
 
+  // (แอดมิน) เปิดฟอร์มแก้ไขพร้อมใส่ข้อมูลเดิมของเกม
   function startEditingGame(game: LibraryGame) {
     setGameToEdit(game);
     setAdminGameDraft({
@@ -104,6 +110,7 @@ export default function SteamCollection({ ownerKey, isAdmin }: { ownerKey: strin
     setNotice("");
   }
 
+  // (แอดมิน) บันทึกฟอร์ม: มี gameToEdit = แก้ไขเกมเดิม, ไม่มี = เพิ่มเกมใหม่
   function saveAdminGame(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!isAdmin) return;

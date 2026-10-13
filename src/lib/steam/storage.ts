@@ -10,6 +10,7 @@ import {
   type SteamGame,
 } from "./schemas";
 
+// คลังเกมและตะกร้าเก็บใน localStorage แยก key ตามผู้ใช้ (ownerKey)
 function collectionStorageKey(ownerKey: string) {
   return `game-backlog:collection:${ownerKey}`;
 }
@@ -18,6 +19,7 @@ function cartStorageKey(ownerKey: string) {
   return `game-backlog:cart:${ownerKey}`;
 }
 
+// อ่านคลังเกมที่ซื้อแล้ว พร้อมปรับข้อมูลรูปแบบเก่าให้เป็นรูปแบบปัจจุบัน
 export function readSteamCollection(ownerKey: string): LibraryGame[] {
   const stored = localStorage.getItem(collectionStorageKey(ownerKey));
   if (!stored) return [];
@@ -27,6 +29,7 @@ export function readSteamCollection(ownerKey: string): LibraryGame[] {
     throw new Error("ข้อมูลคอลเลคชั่นในเบราว์เซอร์ไม่ถูกต้อง");
   }
 
+  // เปลี่ยนรูปปกเป็นขนาดมาตรฐาน และเก็บรูปเดิมไว้เป็นรูปสำรอง
   const normalizedGames = result.data.map((game) => {
     const image = getSteamCapsuleImage(game.id);
     return game.image === image
@@ -35,6 +38,7 @@ export function readSteamCollection(ownerKey: string): LibraryGame[] {
   });
   const purchasedGames = normalizedGames.filter((game) => game.purchasedAt);
   const previouslySavedGames = normalizedGames.filter((game) => !game.purchasedAt);
+  // ข้อมูลเวอร์ชันเก่าที่ยังไม่ได้ซื้อ (ไม่มี purchasedAt) ให้ย้ายไปไว้ในตะกร้าแทน
   if (previouslySavedGames.length > 0) {
     const cart = readSteamCart(ownerKey);
     const knownIds = new Set([...purchasedGames, ...cart].map((game) => game.id));
@@ -50,6 +54,7 @@ export function readSteamCollection(ownerKey: string): LibraryGame[] {
   return purchasedGames;
 }
 
+// อ่านเกมในตะกร้า (และปรับรูปปกแบบเดียวกับคลังเกม)
 export function readSteamCart(ownerKey: string): SteamGame[] {
   const stored = localStorage.getItem(cartStorageKey(ownerKey));
   if (!stored) return [];
@@ -70,6 +75,7 @@ export function readSteamCart(ownerKey: string): SteamGame[] {
   return games;
 }
 
+// เพิ่มเกมลงตะกร้า ข้ามถ้ามีในตะกร้าอยู่แล้วหรือซื้อไปแล้ว
 export function addSteamGameToCart(ownerKey: string, game: SteamGame): SteamGame[] {
   const cart = readSteamCart(ownerKey);
   if (cart.some((cartGame) => cartGame.id === game.id)) return cart;
@@ -80,12 +86,14 @@ export function addSteamGameToCart(ownerKey: string, game: SteamGame): SteamGame
   return updatedGames;
 }
 
+// ลบเกมออกจากตะกร้า
 export function removeSteamGameFromCart(ownerKey: string, gameId: number): SteamGame[] {
   const updatedGames = readSteamCart(ownerKey).filter((game) => game.id !== gameId);
   localStorage.setItem(cartStorageKey(ownerKey), JSON.stringify(updatedGames));
   return updatedGames;
 }
 
+// "ซื้อ" เกม: ย้ายเกมจากตะกร้าไปไว้ในคลัง พร้อมบันทึกเวลาที่ซื้อ
 export function markSteamGamePurchased(ownerKey: string, gameId: number): LibraryGame[] {
   const cart = readSteamCart(ownerKey);
   const game = cart.find((cartGame) => cartGame.id === gameId);
@@ -107,6 +115,7 @@ export function markSteamGamePurchased(ownerKey: string, gameId: number): Librar
   return updatedLibrary;
 }
 
+// แก้ไขชั่วโมงเล่นของเกมในคลัง (จำนวนเต็ม 0–100,000)
 export function updateSteamGamePlaytime(ownerKey: string, gameId: number, hoursPlayed: number): LibraryGame[] {
   const validatedHours = z.number().int().min(0).max(100000).safeParse(hoursPlayed);
   if (!validatedHours.success) {
@@ -124,15 +133,18 @@ export function updateSteamGamePlaytime(ownerKey: string, gameId: number, hoursP
   return updatedLibrary;
 }
 
+// ลบเกมออกจากคลัง
 export function removeSteamGameFromCollection(ownerKey: string, gameId: number): LibraryGame[] {
   const updatedGames = readSteamCollection(ownerKey).filter((game) => game.id !== gameId);
   localStorage.setItem(collectionStorageKey(ownerKey), JSON.stringify(updatedGames));
   return updatedGames;
 }
 
+// (แอดมิน) เพิ่มเกมที่ไม่ได้มาจาก Steam เข้าคลังด้วยตัวเอง
 export function addAdminGameToCollection(ownerKey: string, input: AdminLibraryGameInput): LibraryGame[] {
   const validatedInput = AdminLibraryGameInputSchema.parse(input);
   const library = readSteamCollection(ownerKey);
+  // ใช้เวลาปัจจุบันเป็น id และขยับไปเรื่อย ๆ ถ้าชนกับ id ที่มีอยู่
   let gameId = Date.now();
   while (library.some((game) => game.id === gameId)) gameId += 1;
 
@@ -151,6 +163,7 @@ export function addAdminGameToCollection(ownerKey: string, input: AdminLibraryGa
   return updatedLibrary;
 }
 
+// (แอดมิน) แก้ไขชื่อ รูป และราคาของเกมในคลัง
 export function updateAdminGameInCollection(
   ownerKey: string,
   gameId: number,

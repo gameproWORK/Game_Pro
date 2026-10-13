@@ -1,6 +1,7 @@
 import { getSteamGameDetails } from "@/lib/steam";
 import { NextResponse } from "next/server";
 
+// GET /api/steam/games/:id ดึงรายละเอียดเกมตาม appId
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   const appId = Number(params.id);
   if (!Number.isSafeInteger(appId) || appId <= 0) {

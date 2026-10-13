@@ -1,6 +1,7 @@
 import { getFeaturedSteamGames, isGameCategory } from "@/lib/steam";
 import { NextResponse } from "next/server";
 
+// GET /api/steam/featured?category=... ดึงเกมแนะนำตามหมวด
 export async function GET(request: Request) {
   const category = new URL(request.url).searchParams.get("category") ?? "all";
   if (!isGameCategory(category)) {

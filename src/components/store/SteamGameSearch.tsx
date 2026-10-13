@@ -14,8 +14,10 @@ import {
 import { CategoryTabs } from "./CategoryTabs";
 import { GameCard } from "./GameCard";
 
+// คำค้นหายอดนิยม แสดงเป็นปุ่มลัดใต้ช่องค้นหา
 const TRENDING_TERMS = ["Elden Ring", "Stardew Valley", "Cyberpunk 2077", "Hades"];
 
+// จุดเด่นของเว็บที่แสดงในส่วน hero
 const HERO_FEATURES = [
   { icon: Tag, label: "ราคาเป็นเงินบาท" },
   { icon: ShoppingCart, label: "จัดตะกร้าก่อนซื้อ" },
@@ -26,6 +28,7 @@ const HERO_FEATURES = [
 async function fetchGames(url: string, fallbackMessage: string): Promise<SteamGame[]> {
   const response = await fetch(url);
   const body: unknown = await response.json();
+  // ถ้า API ตอบ error ให้ใช้ข้อความ error จาก API ถ้าไม่มีก็ใช้ข้อความสำรอง
   if (!response.ok) {
     const message = typeof body === "object" && body !== null && "error" in body && typeof body.error === "string"
       ? body.error
@@ -33,6 +36,7 @@ async function fetchGames(url: string, fallbackMessage: string): Promise<SteamGa
     throw new Error(message);
   }
 
+  // ตรวจว่า body.games เป็นรายการเกมที่ถูกต้องตาม schema
   const parsed = SteamGameListSchema.safeParse(
     typeof body === "object" && body !== null && "games" in body ? body.games : undefined
   );
@@ -40,19 +44,23 @@ async function fetchGames(url: string, fallbackMessage: string): Promise<SteamGa
   return parsed.data;
 }
 
+// หน้าร้านหลัก: ค้นหาเกม เลือกหมวดหมู่ และเพิ่มเกมลงตะกร้า
 export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: string; isLoggedIn: boolean }) {
   const [query, setQuery] = useState("");
   const [games, setGames] = useState<SteamGame[]>([]);
+  // id ของเกมที่อยู่ในตะกร้า/คลังแล้ว ใช้เปลี่ยนสถานะปุ่มบนการ์ดเกม
   const [cartIds, setCartIds] = useState<number[]>([]);
   const [libraryIds, setLibraryIds] = useState<number[]>([]);
   // category = null แปลว่ากำลังแสดงผลการค้นหา
   const [category, setCategory] = useState<GameCategory | null>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // ตัวนับลำดับคำขอ ใช้เช็กว่าผลลัพธ์ที่ได้กลับมาเป็นของคำขอล่าสุดหรือไม่
   const requestSequence = useRef(0);
 
   // ป้องกันผลลัพธ์เก่ามาทับผลลัพธ์ใหม่ เวลากดเปลี่ยนเร็ว ๆ
   async function loadGames(url: string, fallbackMessage: string) {
+    // ให้เลขคำขอใหม่ ถ้ามีคำขอใหม่กว่าเข้ามา ผลลัพธ์ของคำขอนี้จะถูกทิ้ง
     const requestId = ++requestSequence.current;
     setLoading(true);
     setError("");
@@ -68,12 +76,14 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
     }
   }
 
+  // เปลี่ยนหมวดหมู่และโหลดเกมแนะนำของหมวดนั้น
   function selectCategory(nextCategory: GameCategory) {
     setCategory(nextCategory);
     setQuery("");
     void loadGames(`/api/steam/featured?category=${nextCategory}`, "โหลดเกมในหมวดนี้ไม่สำเร็จ");
   }
 
+  // ค้นหาเกมจากชื่อ (ต้องยาวอย่างน้อย 2 ตัวอักษร)
   function searchGames(searchTerm: string) {
     const trimmedTerm = searchTerm.trim();
     if (trimmedTerm.length < 2) {
@@ -85,6 +95,7 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
     void loadGames(`/api/steam/search?q=${encodeURIComponent(trimmedTerm)}`, "ค้นหาเกมไม่สำเร็จ");
   }
 
+  // ตอนเปิดหน้า: อ่านเกมในตะกร้า/คลังเพื่อแสดงสถานะปุ่ม แล้วโหลดหมวด "แนะนำ"
   useEffect(() => {
     if (isLoggedIn) {
       try {
@@ -97,11 +108,13 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
     selectCategory("all");
   }, [ownerKey, isLoggedIn]);
 
+  // กดส่งฟอร์มค้นหา (กันหน้ารีโหลด แล้วค้นหาด้วยคำที่พิมพ์)
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     searchGames(query);
   }
 
+  // เพิ่มเกมลงตะกร้าแล้วอัปเดตปุ่มให้แสดงว่าอยู่ในตะกร้าแล้ว
   function addToCart(game: SteamGame) {
     if (!isLoggedIn) return;
     try {
@@ -113,12 +126,15 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
     }
   }
 
+  // ชื่อภาษาไทยของหมวดที่เลือกอยู่ ใช้แสดงเป็นหัวข้อ
   const categoryLabel = GAME_CATEGORIES.find((item) => item.id === category)?.label;
 
   return (
     <section className="steam-search">
+      {/* ส่วน hero: หัวข้อ ช่องค้นหา คำค้นยอดนิยม และจุดเด่นของเว็บ */}
       <div className="search-hero">
         <div aria-hidden="true" className="search-hero-glow" />
+        {/* ภาพตกแต่งด้านข้าง (ไม่มีผลกับการใช้งาน) */}
         <div aria-hidden="true" className="search-hero-art">
           <div className="hero-art-orb">
             <Gamepad2 className="hero-art-icon" />
@@ -143,6 +159,7 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
             เลือกดูเกม ค้นหาราคาและส่วนลด แล้วเพิ่มเกมที่สนใจลงตะกร้า
           </p>
 
+          {/* ฟอร์มค้นหาเกม */}
           <form onSubmit={handleSearch} className="search-form">
             <label className="search-field">
               <span className="sr-only">ค้นหาเกมในร้านเกม</span>
@@ -157,10 +174,12 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
             </label>
             <button type="submit" disabled={loading} className="button button-search">
               <Search aria-hidden="true" className="icon" />
+              {/* แสดง "กำลังค้นหา..." เฉพาะตอนค้นหา ไม่ใช่ตอนโหลดหมวดหมู่ */}
               {loading && category === null ? "กำลังค้นหา..." : "ค้นหาเกม"}
             </button>
           </form>
 
+          {/* ปุ่มลัดคำค้นยอดนิยม กดแล้วค้นหาทันที */}
           <div className="search-trending">
             <span className="search-trending-label">
               <TrendingUp aria-hidden="true" className="icon icon-small" />
@@ -192,10 +211,13 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
         </div>
       </div>
 
+      {/* แท็บเลือกหมวดหมู่ (ขายดี, ลดราคา, มาใหม่ ฯลฯ) */}
       <CategoryTabs active={category} onChange={selectCategory} />
 
-      {error && <p role="alert" className="notice notice-error">{error}</p>}
+      {/* ข้อความแจ้ง error */}
+      {error &&<p role="alert" className="notice notice-error">{error}</p>}
 
+      {/* รายการเกม: หัวข้อเปลี่ยนตามว่าเป็นหมวดหมู่หรือผลการค้นหา */}
       {games.length > 0 && (
         <section className={`search-results${category ? " search-results-featured" : ""}`}>
           <div className="section-heading">
@@ -205,6 +227,7 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
             </div>
             <span className="result-count">{games.length} รายการ</span>
           </div>
+          {/* ระหว่างโหลดรายการใหม่ ยังแสดงรายการเดิมไว้แต่ใส่ class is-loading */}
           <div className={`game-grid${loading ? " is-loading" : ""}`}>
             {games.map((game) => (
               <GameCard
@@ -220,6 +243,7 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
         </section>
       )}
 
+      {/* กำลังโหลดและยังไม่มีเกมให้แสดง */}
       {loading && games.length === 0 && (
         <div className="featured-loading" role="status" aria-live="polite">
           <span className="featured-loading-spinner" />
@@ -227,6 +251,7 @@ export default function SteamGameSearch({ ownerKey, isLoggedIn }: { ownerKey: st
         </div>
       )}
 
+      {/* โหลดเสร็จแล้วแต่ไม่พบเกม */}
       {!loading && games.length === 0 && !error && (
         <div className="search-empty-state">
           <Search aria-hidden="true" className="icon search-empty-icon" />

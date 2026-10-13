@@ -2,6 +2,7 @@ import { z } from "zod";
 import { SteamGameSchema, getSteamCapsuleImage, type SteamGame, type SteamGameDetails } from "./schemas";
 import type { GameCategory } from "./categories";
 
+// โครงสร้างข้อมูลที่ได้จาก Steam storesearch API (ใช้ตอนค้นหาเกม)
 const SteamSearchResponseSchema = z.object({
   items: z.array(z.object({
     id: z.coerce.number().int().positive(),
@@ -15,6 +16,7 @@ const SteamSearchResponseSchema = z.object({
   })),
 });
 
+// โครงสร้างข้อมูลจาก Steam featuredcategories API (เกมแนะนำแยกตามหมวด)
 const SteamFeaturedItemSchema = z.object({
   id: z.coerce.number().int().positive(),
   name: z.string().trim().min(1),
@@ -37,6 +39,7 @@ const SteamFeaturedResponseSchema = z.object({
   coming_soon: SteamFeaturedCategorySchema.optional(),
 });
 
+// โครงสร้างข้อมูลจาก Steam appdetails API (รายละเอียดเกม 1 เกม)
 const SteamAppDetailsSchema = z.object({
   success: z.boolean(),
   data: z.object({
@@ -76,6 +79,7 @@ const SteamAppDetailsSchema = z.object({
   }),
 });
 
+// Steam ส่งราคาเป็นหน่วยย่อย (สตางค์) จึงหาร 100 แล้วจัดรูปแบบเป็นสกุลเงิน
 function formatSteamPrice(amountInMinorUnits: number, currency: string): string {
   return new Intl.NumberFormat("th-TH", {
     style: "currency",
@@ -85,6 +89,7 @@ function formatSteamPrice(amountInMinorUnits: number, currency: string): string 
 }
 
 
+// แปลงคำอธิบายเกมที่เป็น HTML ให้เป็นข้อความธรรมดา
 function stripSteamMarkup(value: string): string {
   return value
     .replace(/<br\s*\/?>/gi, "\n")
@@ -101,6 +106,7 @@ function stripSteamMarkup(value: string): string {
     .trim();
 }
 
+// ดึงรายละเอียดเกมตาม appId (แคช 5 นาที) คืน null ถ้าไม่พบเกมหรือข้อมูลไม่ถูกต้อง
 export async function getSteamGameDetails(appId: number): Promise<SteamGameDetails | null> {
   const url = new URL("https://store.steampowered.com/api/appdetails");
   url.searchParams.set("appids", String(appId));
@@ -113,6 +119,7 @@ export async function getSteamGameDetails(appId: number): Promise<SteamGameDetai
   }
 
   const result: unknown = await response.json();
+  // Steam คืนข้อมูลในรูป { [appId]: { success, data } }
   const entry = typeof result === "object" && result !== null
     ? (result as Record<string, unknown>)[String(appId)]
     : undefined;
@@ -156,6 +163,7 @@ export async function getSteamGameDetails(appId: number): Promise<SteamGameDetai
     releaseDate: details.release_date?.coming_soon
       ? "เร็ว ๆ นี้"
       : details.release_date?.date || null,
+    // รวมรูปที่ใช้เป็นพื้นหลังได้ เรียงตามลำดับที่อยากใช้ก่อน และตัดรูปซ้ำ
     backgroundImages: Array.from(new Set([
       details.background_raw,
       ...details.screenshots.map((screenshot) => screenshot.path_full),
@@ -171,6 +179,7 @@ export async function getSteamGameDetails(appId: number): Promise<SteamGameDetai
   };
 }
 
+// ค้นหาเกมจากชื่อ (ไม่แคช) คืนผลลัพธ์สูงสุด 12 เกม
 export async function searchSteamGames(query: string): Promise<SteamGame[]> {
   const url = new URL("https://store.steampowered.com/api/storesearch/");
   url.searchParams.set("term", query);
@@ -197,6 +206,7 @@ export async function searchSteamGames(query: string): Promise<SteamGame[]> {
       originalPrice: price && !isFree && price.initial > price.final
         ? formatSteamPrice(price.initial, price.currency)
         : null,
+      // API ค้นหาไม่ส่ง % ส่วนลดมา จึงคำนวณเองจากราคาเดิมกับราคาปัจจุบัน
       discountPercent: price && price.initial > price.final
         ? Math.round((1 - price.final / price.initial) * 100)
         : 0,
@@ -204,6 +214,7 @@ export async function searchSteamGames(query: string): Promise<SteamGame[]> {
   });
 }
 
+// ดึงเกมแนะนำตามหมวดหมู่ (แคช 5 นาที) คืนสูงสุด 18 เกม
 export async function getFeaturedSteamGames(category: GameCategory = "all"): Promise<SteamGame[]> {
   const response = await fetch("https://store.steampowered.com/api/featuredcategories/?cc=th&l=thai", {
     next: { revalidate: 300 },
@@ -213,6 +224,7 @@ export async function getFeaturedSteamGames(category: GameCategory = "all"): Pro
   }
 
   const result = SteamFeaturedResponseSchema.parse(await response.json());
+  // หมวด "all" รวมขายดี + ลดราคา + มาใหม่ เข้าด้วยกัน
   const featuredItems = category === "all"
     ? [
         ...result.top_sellers.items,
@@ -220,6 +232,7 @@ export async function getFeaturedSteamGames(category: GameCategory = "all"): Pro
         ...(result.new_releases?.items ?? []),
       ]
     : result[category]?.items ?? [];
+  // ตัดเกมที่ซ้ำกันออกโดยใช้ id
   const uniqueItems = Array.from(new Map(featuredItems.map((item) => [item.id, item])).values());
 
   return uniqueItems.slice(0, 18).map((item) => {
