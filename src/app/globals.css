@@ -3995,3 +3995,326 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/*
+  สไตล์เพิ่มเติม: หมวดหมู่เกม + ตกแต่ง
+  1. หมวดหมู่เกม (category tabs)
+  2. ตกแต่งการ์ดเกม
+  3. ของตกแต่งเล็ก ๆ ทั้งเว็บ
+  4. หน้าแรก (hero)
+*/
+
+/* ---------- 1. หมวดหมู่เกม ---------- */
+.category-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.4rem;
+  overflow-x: auto;
+  border: 1px solid var(--store-border);
+  border-radius: 999px;
+  background: rgba(20, 31, 45, 0.7);
+  scrollbar-width: none;
+}
+
+.category-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.category-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 0 auto;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--store-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+
+.category-tab:hover:not(:disabled) {
+  background: rgba(102, 192, 244, 0.1);
+  color: var(--store-text);
+}
+
+.category-tab.is-active {
+  background: linear-gradient(135deg, #47a3e0, #2a6fb0);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(42, 111, 176, 0.35);
+}
+
+.category-tab:focus-visible {
+  outline: 2px solid var(--store-blue);
+  outline-offset: 2px;
+}
+
+/* ---------- 2. การ์ดเกม ---------- */
+.game-grid.is-loading {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.game-grid .game-card {
+  animation: card-fade-in 0.35s ease both;
+}
+
+.discount-badge {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes card-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- 3. ของตกแต่งทั้งเว็บ ---------- */
+::selection {
+  background: rgba(102, 192, 244, 0.35);
+  color: #fff;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-color: #2a3f55 var(--store-bg);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--store-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid var(--store-bg);
+  border-radius: 999px;
+  background: #2a3f55;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b5874;
+}
+
+.site-nav-item.is-active {
+  box-shadow: inset 0 -2px 0 var(--store-blue);
+}
+
+@media (max-width: 640px) {
+  .category-tabs {
+    border-radius: 0.8rem;
+  }
+
+  .category-tab {
+    flex: 0 0 auto;
+    padding: 0.5rem 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-grid .game-card {
+    animation: none;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---------- 4. หน้าแรก (hero) ---------- */
+.search-hero-highlight {
+  background: linear-gradient(90deg, #66c0f4, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.eyebrow-pill .icon {
+  color: #fcd34d;
+}
+
+.search-hero-art {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  right: clamp(3rem, 8vw, 7rem);
+  width: 15rem;
+  height: 15rem;
+  transform: translateY(-50%);
+}
+
+.hero-art-orb {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(102, 192, 244, 0.25);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(102, 192, 244, 0.35), transparent 60%),
+    rgba(16, 28, 42, 0.6);
+  box-shadow: 0 0 60px rgba(102, 192, 244, 0.2), inset 0 0 40px rgba(167, 139, 250, 0.12);
+}
+
+.hero-art-icon {
+  width: 6rem;
+  height: 6rem;
+  color: #cfe8f9;
+  filter: drop-shadow(0 6px 18px rgba(102, 192, 244, 0.5));
+  transform: rotate(-12deg);
+}
+
+.hero-art-badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--store-border);
+  border-radius: 999px;
+  background: rgba(14, 23, 34, 0.9);
+  color: var(--store-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.hero-art-badge-top {
+  top: 1.2rem;
+  left: -2.5rem;
+}
+
+.hero-art-badge-top .icon {
+  color: #fb923c;
+}
+
+.hero-art-badge-bottom {
+  right: -1.5rem;
+  bottom: 1.5rem;
+}
+
+.hero-art-badge-bottom .icon {
+  color: #4ade80;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-art-orb {
+    animation: hero-art-float 6s ease-in-out infinite alternate;
+  }
+
+  .hero-art-badge-top {
+    animation: hero-art-float 5s ease-in-out infinite alternate-reverse;
+  }
+
+  .hero-art-badge-bottom {
+    animation: hero-art-float 7s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes hero-art-float {
+  from {
+    translate: 0 -6px;
+  }
+  to {
+    translate: 0 6px;
+  }
+}
+
+/* จอเล็กซ่อนรูปตกแต่ง ให้พื้นที่กับช่องค้นหา */
+@media (max-width: 1100px) {
+  .search-hero-art {
+    display: none;
+  }
+}
+
+/* วงโคจรรอบวงกลมจอยเกม */
+.search-hero-art::before,
+.search-hero-art::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.search-hero-art::before {
+  inset: -2.5rem;
+  border: 1px dashed rgba(102, 192, 244, 0.22);
+}
+
+.search-hero-art::after {
+  inset: -5rem;
+  border: 1px solid rgba(102, 192, 244, 0.08);
+}
+
+/* ช่องค้นหาเรืองแสงตอนกดพิมพ์ */
+.search-form {
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.search-form:focus-within {
+  border-color: rgba(102, 192, 244, 0.55);
+  box-shadow: 0 0 0 4px rgba(102, 192, 244, 0.12), 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.search-trending-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.search-trending-label .icon {
+  color: #fb923c;
+}
+
+.search-trending-chip {
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.search-trending-chip:hover:not(:disabled) {
+  border-color: rgba(102, 192, 244, 0.5);
+  background: rgba(102, 192, 244, 0.12);
+  color: #fff;
+}
+
+/* แถบจุดเด่นใต้ช่องค้นหา */
+.hero-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+  margin: 1.75rem 0 0;
+  padding: 1.25rem 0 0;
+  border-top: 1px solid rgba(102, 192, 244, 0.12);
+  list-style: none;
+}
+
+.hero-feature {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--store-muted);
+  font-size: 0.88rem;
+}
+
+.hero-feature-icon {
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.55rem;
+  background: rgba(102, 192, 244, 0.12);
+  color: var(--store-blue);
+}

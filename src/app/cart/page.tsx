@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { AuthButtons } from "@/components/AuthButtons";
-import SteamCart from "@/components/SteamCart";
-import { Gamepad2, Library, Search, ShoppingCart } from "lucide-react";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import SteamCart from "@/components/cart/SteamCart";
 
 export default async function CartPage() {
   const session = await auth();
@@ -13,34 +11,7 @@ export default async function CartPage() {
 
   return (
     <main className="app-shell">
-      <header className="site-header">
-        <div className="site-header-inner">
-          <Link href="/" className="brand">
-            <span className="brand-mark">
-              <Gamepad2 aria-hidden="true" className="icon icon-brand" />
-            </span>
-            <span className="brand-copy">
-              <span className="brand-name">Game <span>Pro</span></span>
-              <span className="brand-tagline">ตะกร้าเกมของคุณ</span>
-            </span>
-          </Link>
-          <nav aria-label="เมนูหลัก" className="site-nav">
-            <Link href="/" className="site-nav-item">
-              <Search aria-hidden="true" className="icon" />
-              ค้นหาเกม
-            </Link>
-            <span aria-current="page" className="site-nav-item is-active">
-              <ShoppingCart aria-hidden="true" className="icon" />
-              ตะกร้า
-            </span>
-            <Link href="/collection" className="site-nav-item">
-              <Library aria-hidden="true" className="icon" />
-              คลังเกม
-            </Link>
-            <AuthButtons isLoggedIn userName={session.user.name} />
-          </nav>
-        </div>
-      </header>
+      <SiteHeader active="cart" tagline="ตะกร้าเกมของคุณ" isLoggedIn userName={session.user.name} />
 
       <div className="page-container">
         <div className="page-heading">

@@ -17,7 +17,7 @@
 ## ✨ ฟีเจอร์หลัก
 
 1. **ระบบเข้าสู่ระบบ (Authentication):** เข้าสู่ระบบด้วยบัญชี Google ผ่าน Auth.js / NextAuth v5 beta
-2. **เกมแนะนำ:** ดึงหมวดหมู่เกมแนะนำจาก Steam Store API พร้อมชื่อเกม ภาพปก และข้อมูลที่ API ส่งกลับมา
+2. **หมวดหมู่เกม:** เลือกดูเกมตามหมวด **แนะนำ · ขายดี · ลดราคา · มาใหม่ · เร็ว ๆ นี้** ดึงข้อมูลจาก Steam Store API พร้อมชื่อเกม ภาพปก และราคา
 3. **ค้นหาเกม:** ค้นหาเกมจาก Steam ด้วยชื่อเกม และแสดงผลลัพธ์ที่ตรงกับคำค้นหา
 4. **รายละเอียดเกม:** เปิดหน้ารายละเอียดของเกม โดยดึงข้อมูลจาก Steam Store API ตามรหัสเกม (App ID)
 5. **ตะกร้าเกม:** เพิ่มเกมที่สนใจลงตะกร้า และนำเกมออกจากตะกร้าได้
@@ -96,7 +96,7 @@ src/
 ├── app/
 │   ├── page.tsx                         # หน้าแรกและส่วนค้นหาเกม
 │   ├── layout.tsx                       # Layout หลัก
-│   ├── globals.css                      # สไตล์ส่วนกลาง
+│   ├── globals.css                      # สไตล์ทั้งหมดของเว็บ
 │   ├── cart/
 │   │   └── page.tsx                     # หน้าตะกร้าเกม
 │   ├── collection/
@@ -116,28 +116,54 @@ src/
 │           └── games/
 │               └── [id]/
 │                   └── route.ts         # API ภายในสำหรับรายละเอียดเกม
-├── components/
-│   ├── AuthButtons.tsx                  # ปุ่มเข้าสู่ระบบ / ออกจากระบบ
-│   ├── SteamGameSearch.tsx              # ค้นหาและแสดงรายการเกม
-│   ├── SteamGameDetailsView.tsx         # แสดงรายละเอียดและเพิ่มเกมลงตะกร้า
-│   ├── SteamCart.tsx                    # จัดการตะกร้าและย้ายเกมเข้าคลัง
-│   └── SteamCollection.tsx              # จัดการคลังเกมและชั่วโมงเล่น
+├── components/                          # แบ่งโฟลเดอร์ตามหน้าที่ใช้งาน
+│   ├── layout/
+│   │   ├── SiteHeader.tsx               # แถบเมนูด้านบน (ใช้ร่วมกันทุกหน้า)
+│   │   └── AuthButtons.tsx              # ปุ่มเข้าสู่ระบบ / ออกจากระบบ
+│   ├── store/                           # หน้าแรก (ร้านค้า)
+│   │   ├── SteamGameSearch.tsx          # ส่วนหัว ช่องค้นหา และรายการเกม
+│   │   ├── CategoryTabs.tsx             # แถบเลือกหมวดหมู่เกม
+│   │   └── GameCard.tsx                 # การ์ดเกม 1 ใบ
+│   ├── game/
+│   │   └── SteamGameDetailsView.tsx     # แสดงรายละเอียดและเพิ่มเกมลงตะกร้า
+│   ├── cart/
+│   │   └── SteamCart.tsx                # จัดการตะกร้าและย้ายเกมเข้าคลัง
+│   └── collection/
+│       └── SteamCollection.tsx          # จัดการคลังเกมและชั่วโมงเล่น
 ├── lib/
 │   ├── admin.ts                         # กำหนดอีเมลแอดมินและตรวจสอบสิทธิ์
-│   └── steam.ts                         # เรียก Steam API, Schema และฟังก์ชันจัดการข้อมูล
+│   └── steam/                           # import ทุกอย่างได้จาก "@/lib/steam"
+│       ├── index.ts                     # รวม export ของทุกไฟล์ในโฟลเดอร์
+│       ├── schemas.ts                   # Schema (Zod) และ Type ของข้อมูลเกม
+│       ├── api.ts                       # เรียก Steam Store API (ฝั่ง server)
+│       ├── storage.ts                   # ตะกร้า / คลังเกมใน localStorage (ฝั่ง browser)
+│       └── categories.ts                # รายการหมวดหมู่เกม
+├── types/
+│   └── css.d.ts                         # ให้ TypeScript รู้จักการ import ไฟล์ .css
 ├── auth.ts                              # ตั้งค่า Auth.js และ Google provider
 └── middleware.ts                        # กำหนดการป้องกันหน้าที่ต้องเข้าสู่ระบบ
 ```
+
+### 🧭 อยากแก้อะไร ไปที่ไหน
+
+| ต้องการแก้ | ไฟล์ |
+| --- | --- |
+| เพิ่ม / ลด / เปลี่ยนชื่อหมวดหมู่ | `src/lib/steam/categories.ts` และไอคอนใน `src/components/store/CategoryTabs.tsx` |
+| เมนูด้านบน | `src/components/layout/SiteHeader.tsx` |
+| ข้อความส่วนหัวหน้าแรก, คำค้นหา "กำลังฮิต", แถบจุดเด่น | `src/components/store/SteamGameSearch.tsx` (`TRENDING_TERMS`, `HERO_FEATURES`) |
+| หน้าตาการ์ดเกม | `src/components/store/GameCard.tsx` |
+| ข้อความท้ายหน้าแรก (footer) | `src/app/page.tsx` |
+| สี / การตกแต่ง | `src/app/globals.css` (ส่วนที่เพิ่มใหม่อยู่ท้ายไฟล์ หัวข้อ "สไตล์เพิ่มเติม") |
 
 ---
 
 ## 🔌 API
 
-โปรเจกต์เรียกใช้ Steam Store API ผ่านฟังก์ชันใน `src/lib/steam.ts` และมี API Routes ภายใน Next.js สำหรับให้หน้าเว็บเรียกใช้งาน
+โปรเจกต์เรียกใช้ Steam Store API ผ่านฟังก์ชันใน `src/lib/steam/api.ts` และมี API Routes ภายใน Next.js สำหรับให้หน้าเว็บเรียกใช้งาน
 
 | Endpoint ภายในโปรเจกต์ | Method | หน้าที่ |
 | --- | --- | --- |
-| `/api/steam/featured` | GET | ดึงรายการเกมแนะนำจาก Steam |
+| `/api/steam/featured?category=<หมวด>` | GET | ดึงรายการเกมตามหมวด: `all` (ค่าเริ่มต้น), `top_sellers`, `specials`, `new_releases`, `coming_soon` |
 | `/api/steam/search?q=<คำค้นหา>` | GET | ค้นหาเกม โดยคำค้นหาต้องมีความยาว 2–80 ตัวอักษร |
 | `/api/steam/games/<appId>` | GET | ดึงรายละเอียดเกมจาก Steam ตาม App ID |
 | `/api/auth/[...nextauth]` | GET / POST | จัดการเส้นทางการยืนยันตัวตนของ Auth.js |
@@ -165,3 +191,4 @@ src/
 - โปรเจกต์ไม่มีฐานข้อมูลกลางสำหรับตะกร้าและคลังเกม หากล้างข้อมูลเว็บไซต์หรือเปลี่ยนเบราว์เซอร์ ข้อมูลที่เก็บใน `localStorage` อาจหายไป
 - ข้อมูลเกมและราคาอ้างอิงจาก Steam Store API ซึ่งอาจเปลี่ยนแปลงตามภูมิภาค เวลา หรือการให้บริการของ Steam
 - การเข้าสู่ระบบ Google ต้องตั้งค่า OAuth credentials ใน `.env.local` ให้ถูกต้องก่อนใช้งาน
+- หมวดหมู่เกมอ้างอิงหมวดที่ Steam ส่งมาให้ บางช่วงเวลาบางหมวด (เช่น "เร็ว ๆ นี้") อาจมีเกมน้อยหรือไม่มีเลย
