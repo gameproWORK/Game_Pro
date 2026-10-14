@@ -195,7 +195,8 @@ export async function searchSteamGames(query: string): Promise<SteamGame[]> {
   return result.items.slice(0, 12).map((item) => {
     const price = item.price ?? null;
     const isFree = price?.final === 0;
-    const fallbackImage = item.tiny_image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/capsule_231x87.jpg`;
+    // ใช้ header.jpg (460x215) เป็นรูปสำรอง แทน tiny_image (231x87) ที่ขยายแล้วภาพแตก
+    const fallbackImage = `https://cdn.akamai.steamstatic.com/steam/apps/${item.id}/header.jpg`;
     return SteamGameSchema.parse({
       id: item.id,
       name: item.name,
