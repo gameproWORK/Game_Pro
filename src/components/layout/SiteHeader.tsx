@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { Gamepad2, Library, Search, ShoppingCart } from "lucide-react";
+import { Gamepad2, Library, Mail, Search, ShoppingCart } from "lucide-react";
 import { AuthButtons } from "./AuthButtons";
 
-type NavKey = "search" | "cart" | "collection";
+type NavKey = "search" | "cart" | "collection" | "contact";
 
 const NAV_ITEMS = [
   { key: "search", href: "/", label: "ค้นหาเกม", icon: Search, needsLogin: false },
   { key: "cart", href: "/cart", label: "ตะกร้า", icon: ShoppingCart, needsLogin: true },
   { key: "collection", href: "/collection", label: "คลังเกม", icon: Library, needsLogin: true },
+  { key: "contact", href: "/contact", label: "ติดต่อ", icon: Mail, needsLogin: false },
 ] as const;
 
 type SiteHeaderProps = {

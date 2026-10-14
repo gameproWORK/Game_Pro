@@ -2731,6 +2731,7 @@ body {
   4. หน้าแรก (hero)
   5. ตกแต่ง hero เพิ่มเติม
   6. รูปปกในตะกร้าให้คมขึ้น
+  7. หน้าติดต่อ
 */
 
 /* ---------- 1. หมวดหมู่เกม ---------- */
@@ -3277,3 +3278,79 @@ html {
   transform: translateZ(0);
 }
 
+
+/* ---------- 7. หน้าติดต่อ ---------- */
+.contact-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1.25rem;
+}
+
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 1px solid var(--store-border);
+  border-radius: 0.8rem;
+  background: linear-gradient(145deg, rgba(32, 62, 82, 0.62), rgba(15, 25, 37, 0.96));
+}
+
+.contact-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgba(102, 192, 244, 0.25);
+  border-radius: 0.7rem;
+  background: rgba(102, 192, 244, 0.12);
+  color: var(--store-blue);
+}
+
+.contact-card-title {
+  margin: 0.4rem 0 0;
+  color: var(--store-text);
+  font-size: 1.25rem;
+}
+
+.contact-card-text {
+  margin: 0;
+  color: var(--store-muted);
+}
+
+.contact-email {
+  color: var(--store-blue);
+  font-size: 1.1rem;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.contact-email:hover {
+  text-decoration: underline;
+}
+
+.contact-team {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-team-member {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(132, 174, 207, 0.12);
+  color: var(--store-text);
+}
+
+.contact-team-member:last-child {
+  border-bottom: 0;
+}
+
+.contact-team-id {
+  color: var(--store-muted);
+  font-variant-numeric: tabular-nums;
+}
